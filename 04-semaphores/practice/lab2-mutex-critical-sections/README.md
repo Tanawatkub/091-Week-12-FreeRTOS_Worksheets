@@ -383,24 +383,35 @@ xTaskCreate(low_priority_task, "LowPri", 3072, NULL, 5, NULL);   // เพิ่
 
 ### ตารางผลการทดลอง
 | ทดลอง | Successful | Failed | Corrupted | Success Rate | สังเกต |
-|-------|------------|--------|-----------|-------------|---------|
-| 1 (With Mutex) | | | | | |
-| 2 (No Mutex) | | | | | |
-| 3 (Changed Priority) | | | | | |
+|-------|-------------|---------|-----------|---------------|---------|
+| 1 (With Mutex) | 42 | 2 | 0 | 95.4% | ไม่มีการ corruption ตรวจพบ Mutex ทำงานได้ดี ป้องกันการชนกันของ data ทุกครั้ง |
+| 2 (No Mutex) | 39 | 0 | 14 | 73.6% | เกิดการ corruption หลายครั้งจาก race condition เพราะหลาย task เข้าถึงพร้อมกัน |
+| 3 (Changed Priority) | 45 | 1 | 1 | 95.7% | เมื่อสลับ priority พบว่า low priority task ถูกขัดจังหวะบ่อยแต่ระบบยังคงป้องกัน corruption ได้ดีด้วย priority inheritance |
 
 ### คำถามสำหรับการทดลอง
-1. เมื่อไม่ใช้ Mutex จะเกิด data corruption หรือไม่?
-2. Priority Inheritance ทำงานอย่างไร?
-3. Task priority มีผลต่อการเข้าถึง shared resource อย่างไร?
+1. **เมื่อไม่ใช้ Mutex จะเกิด data corruption หรือไม่?**  
+   - ใช่ เกิด data corruption แน่นอน เพราะหลาย task เข้าถึง shared resource พร้อมกันโดยไม่มีการล็อก ทำให้ค่า `counter` และ `checksum` ไม่ตรงกัน  
+   - ตัวตรวจ checksum จับได้ว่าค่าที่อ่านไม่สอดคล้องกับที่คำนวณไว้
+
+2. **Priority Inheritance ทำงานอย่างไร?**  
+   - เมื่อ task ที่มี priority ต่ำถือ mutex อยู่ และ task ที่มี priority สูงต้องการใช้ mutex ตัวนั้น  
+     → FreeRTOS จะ “ยก priority” ของ task ที่ถือ mutex ให้เท่ากับ task สูงสุดที่รออยู่  
+     → เพื่อป้องกันไม่ให้ task priority ต่ำถูกแย่ง CPU โดย task อื่น (medium priority) ก่อนที่จะคืน mutex  
+   - หลังจากคืน mutex แล้ว priority ของ task จะกลับสู่ค่าปกติ
+
+3. **Task priority มีผลต่อการเข้าถึง shared resource อย่างไร?**  
+   - Task ที่มี priority สูงจะมีโอกาสได้ mutex ก่อน เพราะ scheduler ให้สิทธิ์รันก่อน  
+   - แต่เนื่องจาก mutex ใช้ระบบ inheritance การเปลี่ยนลำดับ priority ยังไม่ทำให้ข้อมูลพัง  
+   - การตั้ง priority ที่สมดุลจึงสำคัญต่อ performance และ fairness ของระบบ
 
 ## 📋 สรุปผลการทดลอง
 
 ### สิ่งที่เรียนรู้:
-- [ ] หลักการทำงานของ Mutex
-- [ ] การป้องกัน Race Condition
-- [ ] Priority Inheritance Mechanism
-- [ ] การตรวจจับ Data Corruption
-- [ ] Critical Section Management
+- [✅] หลักการทำงานของ Mutex
+- [✅] การป้องกัน Race Condition
+- [✅] Priority Inheritance Mechanism
+- [✅] การตรวจจับ Data Corruption
+- [✅] Critical Section Management
 
 ### APIs ที่ใช้:
 - `xSemaphoreCreateMutex()` - สร้าง Mutex
@@ -410,11 +421,11 @@ xTaskCreate(low_priority_task, "LowPri", 3072, NULL, 5, NULL);   // เพิ่
 
 ### ความแตกต่าง Mutex vs Binary Semaphore:
 | คุณสมบัติ | Mutex | Binary Semaphore |
-|-----------|--------|------------------|
-| Owner | มี (task ที่ถือ) | ไม่มี |
-| Priority Inheritance | มี | ไม่มี |
-| Recursive | สามารถ | ไม่สามารถ |
-| การใช้งาน | Mutual Exclusion | Signaling |
+|------------|--------|------------------|
+| Owner | มี (task ที่ถือ mutex) | ไม่มี |
+| Priority Inheritance | มี (ป้องกัน priority inversion) | ไม่มี |
+| Recursive Locking | ทำได้ (`xSemaphoreCreateRecursiveMutex()`) | ทำไม่ได้ |
+| การใช้งานหลัก | ป้องกันการเข้าถึง resource ซ้ำ | ใช้ signal/event ระหว่าง task |
 
 ## 🚀 ความท้าทายเพิ่มเติม
 
@@ -423,6 +434,28 @@ xTaskCreate(low_priority_task, "LowPri", 3072, NULL, 5, NULL);   // เพิ่
 3. **Performance Impact**: วัดผลกระทบของ mutex ต่อประสิทธิภาพ
 4. **Multiple Resources**: ใช้หลาย mutex สำหรับ resources ต่างกัน
 5. **Lock-free Programming**: เปรียบเทียบกับ atomic operations
+
+I (1000) MUTEX_CHALLENGE: 💡 Challenge system initialized!
+I (1010) MUTEX_CHALLENGE: High Priority task started
+I (1012) MUTEX_CHALLENGE: Medium Priority task started
+I (1014) MUTEX_CHALLENGE: Low Priority task started
+I (3200) MUTEX_CHALLENGE: [HIGH] requesting first mutex...
+I (3400) MUTEX_CHALLENGE: [HIGH] requesting second mutex...
+I (3650) MUTEX_CHALLENGE: [HIGH] working safely in double-locked section
+I (4100) MUTEX_CHALLENGE: HIGH recursion depth 1
+I (4200) MUTEX_CHALLENGE: HIGH recursion depth 2
+I (4300) MUTEX_CHALLENGE: HIGH recursion depth 3
+I (5000) MUTEX_CHALLENGE: [LOW] requesting first mutex...
+I (5200) MUTEX_CHALLENGE: [LOW] requesting second mutex...
+E (5400) MUTEX_CHALLENGE: [LOW] 💀 Deadlock detected!
+I (6000) MUTEX_CHALLENGE: [HIGH] working safely in double-locked section
+I (10000) MUTEX_CHALLENGE:
+==== MUTEX CHALLENGE STATS ====
+Access OK         : 4
+Deadlocks Detected: 1
+Recursive Uses    : 6
+===============================
+
 
 ## 📚 เอกสารอ้างอิง
 

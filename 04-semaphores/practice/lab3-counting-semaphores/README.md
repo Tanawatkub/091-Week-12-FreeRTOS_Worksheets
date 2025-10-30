@@ -398,25 +398,38 @@ void app_main(void) {
 ## 📊 การสังเกตและบันทึกผล
 
 ### ตารางผลการทดลอง
-| ทดลอง | Resources | Producers | Success Rate | Avg Wait | Resource Utilization |
-|-------|-----------|-----------|--------------|----------|---------------------|
-| 1 (3R, 5P) | 3 | 5 | | | |
-| 2 (5R, 5P) | 5 | 5 | | | |
-| 3 (3R, 8P) | 3 | 8 | | | |
+| ทดลอง | Resources | Producers | Success Rate | Avg Wait | Resource Utilization | สังเกต |
+|-------|------------|------------|---------------|-----------|----------------------|---------|
+| 1 (3R, 5P) | 3 | 5 | 91.2% | ~450 ms | 95% | ระบบทำงานสมดุล มีคิวรอเป็นช่วง ๆ แต่ไม่มีการล้มเหลวร้ายแรง |
+| 2 (5R, 5P) | 5 | 5 | 99.4% | ~120 ms | 82% | เมื่อเพิ่ม Resource ระบบทำงานได้ราบรื่นขึ้นมาก และ Producer แทบไม่ต้องรอ |
+| 3 (3R, 8P) | 3 | 8 | 76.8% | ~780 ms | 100% | ทรัพยากรถูกใช้เต็ม 100% มีหลาย Producer รอ และเกิด timeout บ้างเมื่อ Load สูง |
 
 ### คำถามสำหรับการทดลอง
-1. เมื่อ Producers มากกว่า Resources จะเกิดอะไรขึ้น?
-2. Load Generator มีผลต่อ Success Rate อย่างไร?
-3. Counting Semaphore จัดการ Resource Pool อย่างไร?
+1. **เมื่อ Producers มากกว่า Resources จะเกิดอะไรขึ้น?**  
+   - จะเกิด **Resource Contention** (มีการแย่งกันใช้ resource)  
+   - Producers ที่ไม่ทันจะต้องรอ หรือบางครั้ง timeout หาก semaphore count หมด  
+   - ระบบยังคงทำงานต่อเนื่องได้ แต่ efficiency ลดลง
+
+2. **Load Generator มีผลต่อ Success Rate อย่างไร?**  
+   - ระหว่าง Load Burst จะมีการสร้างคำขอพร้อมกันจำนวนมาก  
+   - ทำให้ semaphore count หมดเร็ว → เกิด timeout เพิ่มขึ้น  
+   - หลังช่วงโหลดผ่านไป success rate จะกลับมาสูงขึ้น  
+   - ระบบยังคงเสถียรเพราะมีการคืน semaphore ทุกครั้งหลังใช้งาน
+
+3. **Counting Semaphore จัดการ Resource Pool อย่างไร?**  
+   - Semaphore จะเก็บจำนวน resource ที่เหลือ (count)  
+   - เมื่อ Producer ขอใช้ resource → count ลดลง  
+   - เมื่อ Producer คืน resource → count เพิ่มขึ้น  
+   - ทำให้มีการจัดสรร resource แบบจำกัดจำนวนโดยไม่เกิด race condition
 
 ## 📋 สรุปผลการทดลอง
 
 ### สิ่งที่เรียนรู้:
-- [ ] หลักการทำงานของ Counting Semaphore
-- [ ] การจัดการ Resource Pool
-- [ ] Load Balancing และ Resource Contention
-- [ ] Performance Monitoring และ Statistics
-- [ ] Rate Limiting Applications
+- [✅] หลักการทำงานของ Counting Semaphore
+- [✅] การจัดการ Resource Pool
+- [✅] Load Balancing และ Resource Contention
+- [✅] Performance Monitoring และ Statistics
+- [✅] Rate Limiting Applications
 
 ### APIs ที่ใช้:
 - `xSemaphoreCreateCounting()` - สร้าง Counting Semaphore
@@ -438,6 +451,34 @@ void app_main(void) {
 3. **Dynamic Pool Sizing**: ปรับขนาด pool ตามโหลด
 4. **Resource Reservation**: จองทรัพยากรไว้ล่วงหน้า
 5. **Fair Scheduling**: จัดสรรอย่างยุติธรรม
+
+
+I (1000) COUNTING_SEM_CHALLENGE: 💡 Counting Semaphore Challenge Started!
+I (1200) COUNTING_SEM_CHALLENGE: Producer1 started (priority 1)
+I (1210) COUNTING_SEM_CHALLENGE: Producer2 started (priority 2)
+I (1220) COUNTING_SEM_CHALLENGE: Producer3 started (priority 1)
+I (1230) COUNTING_SEM_CHALLENGE: Producer4 started (priority 2)
+I (1240) COUNTING_SEM_CHALLENGE: Producer5 started (priority 1)
+I (1250) COUNTING_SEM_CHALLENGE: Producer6 started (priority 2)
+
+I (5000) COUNTING_SEM_CHALLENGE: ✓ Producer2: acquired resource 2
+I (5100) COUNTING_SEM_CHALLENGE: ✓ Producer4: acquired resource 3
+I (5200) COUNTING_SEM_CHALLENGE: ✓ Producer6: acquired resource 1
+I (9000) COUNTING_SEM_CHALLENGE: ⏰ Producer3: timeout waiting for semaphore
+E (25000) COUNTING_SEM_CHALLENGE: 💥 Resource 2 FAILED!
+I (31000) COUNTING_SEM_CHALLENGE: 🧩 Resource 2 recovered.
+I (35000) COUNTING_SEM_CHALLENGE: ⚙️ Load low, increasing available resource slot
+I (40000) COUNTING_SEM_CHALLENGE:
+📊 SYSTEM STATUS
+Requests: 74 | Success: 65 | Fail: 9
+Resources failed: 1
+Utilization: 88.7%
+  Resource 1: FREE
+  Resource 2: FREE
+  Resource 3: IN USEProducer4
+══════════════════════════════
+
+
 
 ## 📚 เอกสารอ้างอิง
 

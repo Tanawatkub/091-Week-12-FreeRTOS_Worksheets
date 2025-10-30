@@ -1,3 +1,7 @@
+# 🧠 Week 12: ESP-IDF Basic Project and Environment Setup  
+**รายงานโดย:** Tanawat Putta (67030091)  
+**รายวิชา:** Microcontroller Applications  
+
 # 🧪 Lab 1: Single Task vs Multitasking Demo
 
 ## 🎯 วัตถุประสงค์

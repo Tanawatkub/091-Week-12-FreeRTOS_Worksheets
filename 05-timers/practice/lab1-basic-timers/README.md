@@ -36,6 +36,7 @@ CONFIG_FREERTOS_TIMER_TASK_PRIORITY=3
 CONFIG_FREERTOS_TIMER_TASK_STACK_SIZE=2048
 CONFIG_FREERTOS_TIMER_QUEUE_LENGTH=10
 ```
+![alt text](image.png)
 
 ### 2. สร้างโปรเจคใหม่
 ```bash
@@ -376,11 +377,11 @@ for (int i = 0; i < 10; i++) {
 ## 📋 สรุปผลการทดลอง
 
 ### สิ่งที่เรียนรู้:
-- [ ] การสร้างและจัดการ Software Timers
-- [ ] One-shot vs Auto-reload timers
-- [ ] Timer callbacks และ context
-- [ ] Dynamic timer creation/deletion
-- [ ] Timer Service Task behavior
+- ✅ การสร้างและจัดการ **Software Timers**
+- ✅ ความแตกต่างระหว่าง **One-shot** และ **Auto-reload timers**
+- ✅ การทำงานของ **Timer callbacks และ context**
+- ✅ การสร้างและลบ **Dynamic timer** ขณะรัน
+- ✅ การทำงานของ **Timer Service Task**
 
 ### APIs ที่ใช้:
 - `xTimerCreate()` - สร้าง timer
@@ -397,6 +398,25 @@ for (int i = 0; i < 10; i++) {
 3. **Error Handling**: จัดการ timer failures
 4. **Complex Scheduling**: สร้าง scheduling patterns
 5. **Resource Management**: จัดการ timer resources
+
+I (0) TIMER_CHALLENGE: 🚀 Advanced FreeRTOS Timer Challenge Starting...
+I (0) TIMER_CHALLENGE: ✅ All timers started successfully!
+I (500) TIMER_CHALLENGE: 🔄 Sync Timer #1 | Interval: 500 ticks | Avg: 500.00
+I (1000) TIMER_CHALLENGE: 🔄 Sync Timer #2 | Interval: 500 ticks | Avg: 500.00
+I (3000) TIMER_CHALLENGE: 📊 Performance Analysis...
+I (3000) TIMER_CHALLENGE: ✅ Timer stable (avg interval 500.00 ticks)
+I (7000) TIMER_CHALLENGE: 🧭 Scheduler Pattern #1
+I (7000) TIMER_CHALLENGE: 🟡 Slowing Down Sync
+I (9000) TIMER_CHALLENGE: ⚠️ Simulating processing delay...
+I (9500) TIMER_CHALLENGE: 🔄 Sync Timer #12 | Interval: 700 ticks | Avg: 520.25
+I (10000) TIMER_CHALLENGE: 📊 Performance Analysis...
+I (10000) TIMER_CHALLENGE: ⏱️ Timer drift detected! Avg interval = 520.25
+I (15000) TIMER_CHALLENGE: 🧭 Scheduler Pattern #0
+I (15000) TIMER_CHALLENGE: 🟢 Increasing Sync Speed
+I (20000) TIMER_CHALLENGE: 💥 Simulated Timer Error Detected!
+I (20000) TIMER_CHALLENGE: 🔁 Attempting Recovery...
+I (20500) TIMER_CHALLENGE: 🔄 Sync Timer #25 | Interval: 300 ticks | Avg: 490.00
+
 
 ## 📚 เอกสารอ้างอิง
 

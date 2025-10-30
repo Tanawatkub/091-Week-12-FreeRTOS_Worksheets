@@ -300,20 +300,62 @@ idf.py monitor | tee output.log
 
 ## Checklist การทำงาน
 
-- [ ] Flash และ Monitor สำเร็จ
-- [ ] เห็น Log messages ต่างๆ
-- [ ] ทดสอบ Log levels ต่างๆ
-- [ ] ใช้ formatted logging ได้
-- [ ] ปรับ Log level ผ่าน menuconfig
-- [ ] ทำแบบฝึกหัดครบ
+- [✅] Flash และ Monitor สำเร็จ
+- [✅] เห็น Log messages ต่างๆ
+- [✅] ทดสอบ Log levels ต่างๆ
+- [✅] ใช้ formatted logging ได้
+- [✅] ปรับ Log level ผ่าน menuconfig
+- [✅] ทำแบบฝึกหัดครบ
 
 ## คำถามทบทวน
 
 1. ความแตกต่างระหว่าง `printf()` และ `ESP_LOGI()` คืออะไร?
+
+printf() ใช้แสดงข้อความธรรมดาออกหน้าจอ โดยไม่มีระดับหรือระบบจัดการ log
+
+ESP_LOGI() เป็นฟังก์ชัน logging ของ ESP-IDF ที่สามารถกำหนดระดับข้อความ (Info, Warning, Error ฯลฯ) ได้ และสามารถเปิด/ปิดการแสดงผลตาม log level ที่ตั้งไว้
+
+สรุป: ESP_LOGI() เหมาะสำหรับ debug และดูสถานะระบบมากกว่า printf()
+
+
 2. Log level ไหนที่จะแสดงใน default configuration?
+
+ค่าเริ่มต้นคือ Info
+
+หมายความว่า log ที่ระดับ Info, Warning, และ Error จะถูกแสดง
+แต่ Debug และ Verbose จะไม่แสดงจนกว่าจะปรับเพิ่มใน menuconfig
+
+
 3. การใช้ `ESP_ERROR_CHECK()` มีประโยชน์อย่างไร?
+
+ใช้ตรวจสอบว่าฟังก์ชันของ ESP-IDF คืนค่าผิดพลาดหรือไม่
+
+ถ้ามี error โปรแกรมจะหยุดทำงานทันทีและพิมพ์ข้อความ error ออกทาง serial monitor
+
+สรุป: ช่วยให้ตรวจจับข้อผิดพลาดได้ง่าย และป้องกันระบบ crash โดยไม่รู้สาเหตุ
+
+
 4. คำสั่งใดในการออกจาก Monitor mode?
+
+Linux / macOS: Ctrl + ]
+
+Windows: Ctrl + T แล้ว Ctrl + X
+
+(หรือกด Ctrl + T แล้วดู Help ได้ด้วย Ctrl + H)
+
+
 5. การตั้งค่า Log level สำหรับ tag เฉพาะทำอย่างไร?
+
+ใช้ฟังก์ชัน esp_log_level_set() ภายในโค้ด เช่น
+
+esp_log_level_set("LOGGING_DEMO", ESP_LOG_DEBUG);
+
+
+ใช้สำหรับกำหนดระดับ log เฉพาะ tag ที่ระบุ โดยไม่กระทบ tag อื่น
+
+สรุป: ใช้ esp_log_level_set("TAG", LEVEL) เพื่อควบคุม log เฉพาะส่วนของโค้ด
+
+
 
 ## บทสรุป
 

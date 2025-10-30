@@ -407,20 +407,48 @@ ESP_LOGI(TAG, "Task state: %s", state_names[state]);
 
 ## Checklist การทำงาน
 
-- [ ] สร้าง Task พื้นฐานสำเร็จ
-- [ ] เข้าใจ Task parameters และ return values
-- [ ] ทดสอบ Task priorities
-- [ ] ใช้ Task management APIs (suspend/resume)
-- [ ] แสดง runtime statistics
-- [ ] ทำแบบฝึกหัดครบ
+- [✅] สร้าง Task พื้นฐานสำเร็จ
+- [✅] เข้าใจ Task parameters และ return values
+- [✅] ทดสอบ Task priorities
+- [✅] ใช้ Task management APIs (suspend/resume)
+- [✅] แสดง runtime statistics
+- [✅] ทำแบบฝึกหัดครบ
 
 ## คำถามทบทวน
 
 1. เหตุใด Task function ต้องมี infinite loop?
+
+เช่น led1_task, led2_task, และ system_info_task
+
+แต่ละ Task ทำงานแยกกัน (Multitasking)
+
+
 2. ความหมายของ stack size ใน xTaskCreate() คืออะไร?
+
+ใช้ vTaskSuspend() / vTaskResume() เพื่อหยุดหรือเริ่ม task อื่น ๆ
+
+ใช้ vTaskDelete() เพื่อลบ task ออกจากระบบ
+
+
 3. ความแตกต่างระหว่าง vTaskDelay() และ vTaskDelayUntil()?
+
+Task ที่มี Priority สูงจะได้ CPU ก่อน
+
+ถ้า Priority เท่ากัน → ใช้ Round Robin Scheduling
+
+
 4. การใช้ vTaskDelete(NULL) vs vTaskDelete(handle) ต่างกันอย่างไร?
+
+ใช้ vTaskGetRunTimeStats() และ vTaskList() เพื่อดูการใช้เวลาและ stack
+
+
 5. Priority 0 กับ Priority 24 อันไหนสูงกว่า?
+
+Exercise 1: Task ลบตัวเอง (vTaskDelete(NULL))
+
+Exercise 2: Task สื่อสารกันผ่านตัวแปร global (shared_counter)
+
+
 
 ## บทสรุป
 
